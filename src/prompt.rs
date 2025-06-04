@@ -262,6 +262,7 @@ pub async fn run<T: ViewProvider + SearchProvider>(
             loop {
                 tokio::select! {
                     Some(focus) = editor_focus_rx.recv() => {
+                        let term_size = terminal::size()?;
                         let (editor_pane, guide_pane) = {
                             let mut editor = shared_editor.write().await;
                             if focus {
@@ -270,8 +271,8 @@ pub async fn run<T: ViewProvider + SearchProvider>(
                                 editor.defocus();
                             }
                             (
-                                editor.create_editor_pane(size.0, size.1),
-                                editor.create_guide_pane(size.0, size.1),
+                                editor.create_editor_pane(term_size.0, term_size.1),
+                                editor.create_guide_pane(term_size.0, term_size.1),
                             )
                         };
                         {
@@ -351,9 +352,10 @@ pub async fn run<T: ViewProvider + SearchProvider>(
                         }
                     }
                     Some(event) = processor_event_rx.recv() => {
+                        let term_size = terminal::size()?;
                         let pane = {
                             let mut visualizer = shared_visualizer.lock().await;
-                            visualizer.create_pane_from_event((size.0, size.1), &event).await
+                            visualizer.create_pane_from_event((term_size.0, term_size.1), &event).await
                         };
                         {
                             shared_renderer.lock().await.update_and_draw([
@@ -372,9 +374,9 @@ pub async fn run<T: ViewProvider + SearchProvider>(
                         let (editor_pane, guide_pane, searcher_pane) = {
                             let editor = shared_editor.read().await;
                             (
-                                editor.create_editor_pane(size.0, size.1),
-                                editor.create_guide_pane(size.0, size.1),
-                                editor.create_searcher_pane(size.0, size.1),
+                                editor.create_editor_pane(area.0, area.1),
+                                editor.create_guide_pane(area.0, area.1),
+                                editor.create_searcher_pane(area.0, area.1),
                             )
                         };
                         {
